@@ -13,14 +13,16 @@ library(dplyr)
 OriginData <- read.csv("SARStats.csv") 
 OriginData$Count <- as.numeric(OriginData$Count)
 xuan <-OriginData %>%
-  group_by(Industry)%>%
+  group_by(Industry,Countym)%>%
   summarise(n=sum(Count))%>%
-  filter(Industry != '[Total]') %>%
+  filter(Industry != '[Total]' & Countym %in% c("Los Angeles County, CA","Santa Clara County, CA","Orange County, CA","Santa Barbara County, CA")) %>%
   arrange(desc(n))
-ggplot(data=xuan,mapping=aes(x=Industry,y=n),group=factor(1))+ 
-          geom_bar(width=0.5,stat = "Identity")+
-          theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))+
-          geom_text(aes(label=n), vjust=0) 
+ggplot(data=xuan,mapping=aes(x=Countym,y=n),group=factor(1),xlab(Countym))+ 
+          geom_bar(position = "dodge",aes(fill=Industry),stat = "Identity")+
+          theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
+          coord_flip()
+       
           
+      
 ```
 
