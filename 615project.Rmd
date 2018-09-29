@@ -1,0 +1,37 @@
+---
+title: "615group_project"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(knitr)
+library(tidyverse)
+data<-read.csv("SARStats.csv")
+#summary(data)
+
+data$Count <- as.numeric(data$Count)
+data <- filter(data, !(str_detect(string = data$Industry,pattern = "\\[Total\\]")))
+data <- filter(data, !(str_detect(string = data$Suspicious.Activity,pattern = "\\[Total\\]")))
+data <- filter(data, !(str_detect(string = data$Count,pattern = "\\[Total\\]")))
+data1<-data %>%
+  group_by(Industry,Suspicious.Activity) %>%
+  summarise(sum=sum(Count)) %>%
+  group_by(Industry) %>%
+  arrange(desc(sum))
+kable(data1)
+
+ggplot(data1,aes(x=Industry,y = sum,fill = Suspicious.Activity)) + geom_bar(stat="identity",position = "dodge")+ theme(axis.text.x = element_text(angle = 90)) + ggtitle("Guangyan Yu")
+
+
+```
+
+
