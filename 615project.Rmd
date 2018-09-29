@@ -33,5 +33,5 @@ ggplot(data1,aes(x=Industry,y = sum,fill = Suspicious.Activity)) + geom_bar(stat
 
 
 ```
-
-
+##Discussion and Conclusion 
+Through this plot, we can know that, firstly, the two industries----Casino/Card Club - Tribal Authorized Casino and Securities/Futures, have low suspicious activity, while Depository Institution and Money Services Business (MSB) have relatively high number of suspicious activity. Secondly, in the two high suspicious activity industry, Depository Institution has more kinds of suspicious activity than MSB. Thirdly, it is obvious that suspicious activity in Credit/Debit Card sets the most proportion in Depository Institution, and for MSB, suspicious activity in Other Fraud sets the most proportion.
