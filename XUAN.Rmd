@@ -7,7 +7,13 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
  
- Plot the # of credit card fraud by county.
+## Xuan's plot
+  As we get a lot of regions here, it is hard to put all the information on the same plot. So I randomly picked 4 counties: ("Los Angeles County, CA","Santa Clara County, CA","Orange County, CA","Santa Barbara County, CA"). 
+
+  I don't want the text to be overlapped with each other, so I switch the direction of x-axis and y-axis. Now the x-axis becomes vertical and the y-axis becomes horizontal.
+  
+  Position = "dodge" places overlapping objects directly beside one another. This makes it easier to compare individual values.
+  
 ```{r}
 library(dplyr)
 OriginData <- read.csv("SARStats.csv") 
