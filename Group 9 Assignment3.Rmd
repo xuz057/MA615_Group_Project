@@ -25,16 +25,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##Jianhao's Plot
 
-```{r cars}
-data_new<-read.csv("SARStats.csv") %>%
-  group_by(Countym) %>%
-  summarise(n=sum(Count))%>%
-  filter(Countym!='[Total]')%>%
-  arrange(desc(n))
-ggplot(data_new, aes(x = Countym,y =n, group = factor(1))) + 
-    geom_bar(stat = "identity", width = 0.5)+theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
-
-```
 
 ## Xuan's plot
   As we get a lot of regions here, it is hard to put all the information on the same plot. So I randomly picked 4 counties: ("Los Angeles County, CA","Santa Clara County, CA","Orange County, CA","Santa Barbara County, CA"). 
