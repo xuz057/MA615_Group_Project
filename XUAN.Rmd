@@ -1,0 +1,26 @@
+---
+title: "XUAN'S SCRIPT"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+ 
+ Plot the # of credit card fraud by county.
+```{r}
+library(dplyr)
+OriginData <- read.csv("SARStats.csv") 
+OriginData$Count <- as.numeric(OriginData$Count)
+xuan <-OriginData %>%
+  group_by(Industry)%>%
+  summarise(n=sum(Count))%>%
+  filter(Industry != '[Total]') %>%
+  arrange(desc(n))
+ggplot(data=xuan,mapping=aes(x=Industry,y=n),group=factor(1))+ 
+          geom_bar(width=0.5,stat = "Identity")+
+          theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))+
+          geom_text(aes(label=n), vjust=0) 
+          
+```
+
