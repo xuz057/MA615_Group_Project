@@ -34,6 +34,7 @@ knitr::opts_chunk$set(echo = TRUE)
   Position = "dodge" places overlapping objects directly beside one another. This makes it easier to compare individual values.
   
 ```{r}
+library(ggplot2)
 library(dplyr)
 OriginData <- read.csv("SARStats.csv") 
 OriginData$Count <- as.numeric(OriginData$Count)

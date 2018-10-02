@@ -21,11 +21,6 @@ knitr::opts_chunk$set(echo = TRUE)
   
   ![Filter](read_me_data.png)
 
-
-
-##Jianhao's Plot
-
-
 ## Xuan's plot
   As we get a lot of regions here, it is hard to put all the information on the same plot. So I randomly picked 4 counties: ("Los Angeles County, CA","Santa Clara County, CA","Orange County, CA","Santa Barbara County, CA"). 
 
@@ -35,6 +30,7 @@ knitr::opts_chunk$set(echo = TRUE)
   
 ```{r}
 library(dplyr)
+library(ggplot2)
 OriginData <- read.csv("SARStats.csv") 
 OriginData$Count <- as.numeric(OriginData$Count)
 xuan <-OriginData %>%
@@ -48,8 +44,6 @@ ggplot(data=xuan,mapping=aes(x=Countym,y=n),group=factor(1),xlab(Countym))+
           coord_flip()
           
 ```
-
-##Discussion & Conclusion
 
 ##Jianhao's plot
 ```{r}
