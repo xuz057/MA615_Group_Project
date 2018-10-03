@@ -142,7 +142,8 @@ ggplot(data_yr, aes(x = industry, y = frauds))+
   geom_bar(aes(fill = yr), stat = "identity", position = "dodge")+
   theme(axis.text.x = element_text(angle=0,hjust=1,vjust=0.5))+
   theme(legend.text = element_text(size = 9),
-        legend.title = element_text(size = 9, face = "bold"),legend.position = "right")
+        legend.title = element_text(size = 9, face = "bold"),legend.position = "right")+
+  ggtitle("Megha's Plot")
 ```
 
 **Conclusion**
