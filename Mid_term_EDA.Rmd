@@ -1,0 +1,291 @@
+---
+title: "Midterm Project Final Report"
+author: "Jianhao Yan, Guangyan Yu, Xuan Zhu, Megha Pandit"
+date: "10/18/2018"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Prepare the Dataset
+  
+  The goal of this project is to explore the relationship between weather conditions and attendance at Red Sox and Celtics games in the greater Boston area. Thus, we need to prepare three datasets: one for the weather records, and the other two for adttendance at Red Sox and Celtics games, separately.
+  
+  Weather data is easy to find, as the .csv file can be directly downloaded.
+  
+  For Celtics, the thing becomes a little complicated. We used the following procedures to acquire data from multiple webpages.
+  
+  Step 1. Go to https://www.basketball-reference.com/. Browse the website, and on the landing page, click on "Schedule & Results" under the section "Seasons". The reason why we choose this site over other competitors is that its urls are written in a friendly way.
+
+As the most recent season is 17-18 (Season 18-19 will begin soon!), the page now automatically shows games in OCT,2017.
+
+Explore all the webpages that contain the info we want. There's a naming rule for their urls:
+
+"www.basketball-reference.com/leagues/NBA_year_games-_month.html"
+
+So we have designed a way to scrape data from multiple web pages quickly.
+
+Step 2. Create a table called 'urls'. 'Urls' has 9 * 6 rows (9 months per season, 6 years in total), corresponding to 54 different webpages. Fill the table with links.
+
+Step 3. Use the table to scrape data in an easy for-loop.
+
+Step 4.  Clean and organize the data so that it is ready for analysis.
+
+
+```{r}
+library(rvest)
+library(tidyverse)
+
+#create a table to store Urls
+urls <- matrix(c(1:54),54,1)
+
+
+for( i in 2013:2018) {  # change the part of the year in urls
+#use i in the string
+  i <- as.character(i)
+  
+#create urls by the rule
+OCT <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-october.html", sep = "_")
+NOV <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-november.html", sep = "_")
+DEC <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-december.html", sep = "_")
+JAN <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-january.html", sep = "_")
+FEB <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-february.html", sep = "_")
+MAR <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-march.html", sep = "_")
+APR <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-april.html", sep = "_")
+MAY <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-may.html", sep = "_")
+JUN <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-june.html", sep = "_")
+
+i <- as.numeric(i)
+
+#assign the links to our table
+
+urls[i-2012] <- OCT
+urls[i-2012+6] <- NOV
+urls[i-2012+12] <- DEC
+urls[i-2012+18] <- JAN
+urls[i-2012+24] <- FEB
+urls[i-2012+30] <- MAR
+urls[i-2012+36] <- APR
+urls[i-2012+42] <- MAY
+urls[i-2012+48] <- JUN
+}
+
+# 'Urls' has been created successfully.
+# Now Scrape data from the website by using our table
+for (i in 1:54){
+templink <- read_html(urls[i])
+a <- templink%>%html_nodes("table")%>%.[[1]]%>%html_table()
+
+#data transformation
+colnames(a)[5] <- "City"
+colnames(a)[4] <- "3"
+colnames(a)[7] <- "1"
+colnames(a)[8] <- "2"
+a <- a %>%
+select(Date,City,Attend.)%>%
+filter(City =="Boston Celtics") 
+
+if (i == 1) {
+  Celtics <- a
+}
+#conbime all the data into a single table
+Celtics <- rbind(a,Celtics)
+}
+
+Celtics$Date <- substr(Celtics$Date,6,17)
+Celtics$Date <- as.Date(Celtics$Date,format='%B %d, %Y')
+```
+   
+  
+  For Red Sox games, we use the site https://www.baseball-reference.com/teams/. The procedures are similar to Celtics.
+ 
+```{r}
+#baseball data
+library(XML)
+library(RCurl)
+library(rlist)
+library(stringr)
+library(readxl)
+
+weather <- read.csv("weather.csv")
+
+url1 <- "https://www.baseball-reference.com/teams/BOS/"
+url2 <- "-schedule-scores.shtml"
+
+years <- c(2012:2017)
+
+urls2 <- str_c(url1, years, url2, sep = "")
+
+filenames <- str_c("mr", years, sep = "")
+
+N <- length(urls2)
+
+for (i in 1:N){
+  suppressMessages(
+    assign(filenames[i], readHTMLTable(getURL(urls2[i])))
+  )
+  
+  file <- get(filenames[i])[[1]]
+  file<-file[!str_detect(file$`Gm#`,"Gm#"),]
+  colnames(file)[1]<-"YYYY"
+  file[,1]<-years[i]
+  if(i == 1){
+    redsox <- file
+  }
+  
+  else{
+    redsox <- rbind.data.frame(redsox, file)
+  }
+}
+
+redsox$Date<-paste(redsox$Date,redsox$YYYY,sep = ",")
+redsox$Date<-str_replace_all(redsox$Date," \\((.*?)\\)","")
+redsox$Date<-as.Date(redsox$Date, format="%A, %b %d, %Y")
+redsox<-redsox[!str_detect(redsox[,5],"@"),]
+
+redsox_attendence<-subset(redsox,select=c(Date,Time,Attendance))
+str(redsox_attendence)#Date:Date, Time:factor, Attendence:factor
+redsox_attendence$Attendance<-str_replace_all(redsox_attendence$Attendance,",","")
+redsox_attendence$Attendance<-as.numeric(redsox_attendence$Attendance)
+
+
+```
+
+Now all the datasets are ready for analysis.
+
+## EDA 
+## (A) Red Sox 
+
+   Before we formally produce EDA, it is always good to take a look at the dataset first, and then think about the problem we are trying to throw out. As we can see from the weather table, there are so many different types of weather conditions, such as fog, snow and wind. Faced with multiple weather types, our group tends to analyse the influence in a simple way. So we define the date with special weather conditions as abnormal weather.
+   
+```{r}
+str(redsox)
+str(redsox_attendence)
+str(weather)
+type_code = c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13",
+              "WT14","WT15","WT16","WT17","WT18","WT19","WT22")
+
+```
+
+   When trying to do the scatter plot of the weather conditions versus attendace number, we cannot see any clear relationship between them. It is only possible to conclude that the maximum is between 36000 and 39000 for both normal weather and abnormal weather. 
+
+```{r}
+library(dplyr)
+library(ggplot2)
+weather1 = weather[,c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13",
+                     "WT14","WT15","WT16","WT17","WT18","WT19","WT22")]
+weather1[is.na(weather1)] = 0
+a = rowSums(weather1)
+weather$sum = a
+for (i in 1:dim(weather)[1]){
+  if (as.integer(weather$sum[i]) >= 1) {
+    weather$sum[i] = "abnormal"
+  }
+  else{
+    weather$sum[i] = "normal"
+  }
+}
+colnames(weather)[6]<-"Date"
+
+##Join the two tables
+weather$Date = as.Date(weather$Date)
+table_type<-inner_join(weather,redsox_attendence,by="Date")
+weather$sum = as.character(weather$sum)
+weather2 <- table_type%>%
+  group_by(sum)%>%
+  summarise(mean_attendance=mean(Attendance))
+##Plots
+ggplot(data = table_type)+geom_point(aes(x=sum,y=Attendance))
+p_red1<-boxplot(data=table_type,Attendance~sum)
+p_red1
+##t-test
+table_type2<-table_type[,c("sum","Attendance")]
+table_normal<-filter(table_type2,sum=='normal')
+table_abnormal<-filter(table_type2,sum=="abnormal")
+t.test(table_abnormal$Attendance,table_normal$Attendance)
+##no obvious difference between the attendances on normal and abnormal days.
+```
+
+   
+   So we switch to make the boxplot. We find that there is no difference in the average attendances between under normal weather and under abnormal weather. To verify this claim, we perform the t-test.The conculsion is that we should accept the null hypothesis that the average attendances are the same. So it makes no big difference in the attendances of Red Sox games even though weather conditions are bad.
+   
+```{r}
+boxplot(data=table_type,Attendance~sum)
+##t-test
+table_type2<-table_type[,c("sum","Attendance")]
+table_normal<-filter(table_type2,sum=='normal')
+table_abnormal<-filter(table_type2,sum=="abnormal")
+t.test(table_abnormal$Attendance,table_normal$Attendance)
+##no obvious difference between the attendances on normal and abnormal days.
+```
+
+
+   Besides, we can take the influence of raining on the attendance of Red Sox games as an exmaple. First, define the rainy level as "low", "medium" and "high". Then we use ggplot to graph the bar of the rainy level vs average attendaces. We still do not find any differences in the average attendance among different rainy levels. The last graph also indicates that the rain really has few influences on the attendances.
+   
+```{r}
+table_rain<-weather[,c('Date','PRCP')]
+colnames(table_rain)[1]<-"Date"
+table_rain$Date = as.Date(table_rain$Date)
+Attendance_rain<-inner_join(redsox_attendence,table_rain,by="Date")
+
+Attendance_rain$PRCP <- ifelse(Attendance_rain$PRCP==0,"Low",
+                         ifelse(Attendance_rain$PRCP>0 & Attendance_rain$PRCP<0.02, "Medium", "High"))
+
+Attendance_rain1<-Attendance_rain%>%
+  group_by(PRCP)%>%
+  summarise(mean_attendance=mean(Attendance))
+p_red2<-ggplot(Attendance_rain1, aes(x=PRCP, y=mean_attendance))+geom_bar(stat = "identity") 
+p_red2
+Attendance_rain2<-inner_join(redsox_attendence,table_rain,by="Date")
+table_tmax<-weather[,c("Date","TMAX")]
+table_tmax_rain<-inner_join(Attendance_rain,table_tmax,by="Date")
+table_tmax_rain$PRCP<-as.factor(table_tmax_rain$PRCP)
+p_red3<-ggplot(data =table_tmax_rain) + 
+  geom_smooth(mapping = aes(x=TMAX, y=Attendance,color=PRCP)) 
+p_red3
+join_rain_redsox<-inner_join(weather,redsox_attendence,by="Date")
+p_red4<-ggplot(data = join_rain_redsox)+geom_smooth(mapping = aes(x=PRCP,y=Attendance))
+p_red4
+```
+
+
+    Then we think that we should take the tempreture into our considerations. So we draw the scatter plot. From this plot, we see that data gathers around 80F, and the attendance records are high. As we all know, 80F is comfortable for humans to go outside, so we propose that the tempreture has some influence on the attendance. People are more likely to watch games at 80F. 
+
+## (B)Celtics
+## (C) Comparisons
+
+  Firstly, we focus on differences of what the effects that rain can bring to the attendance between basketball and baseball. From the first graph, we can find the basketball attendance has more obvious trends that, with the increase in rain, the attendances tend to decrease. However, this phenomenon does not fit our consensus. 
+```{r}
+library(plyr)
+table_celtics<-Celtics
+table_celtics$Attend.<-as.numeric(gsub(",","",table_celtics$Attend.))
+colnames(table_celtics)[3]="Attendance"
+join_rain_celtics<-inner_join(table_celtics,weather,by="Date")
+p_c4<-ggplot(data = join_rain_celtics)+geom_smooth(mapping = aes(x=PRCP,y=Attendance))
+p_c4
+p_red4
+```
+
+##So I use the second plot to compare the difference between basketball and baseball. From this bar chart, we can find the average basketball attendance has much little difference under the different level of rains. So our group thinks that the influences of rain on the basketball attendances is less than baseball attendance.
+```{r}
+rainlevel<-Attendance_rain[,c("Date","PRCP")]
+rain_level_c<-inner_join(rainlevel,table_celtics,by="Date")
+Attendance_rain2<-rain_level_c%>%
+  group_by(PRCP)%>%
+  summarise(mean_attendance=mean(Attendance))
+p_c2<-ggplot(Attendance_rain2, aes(PRCP, mean_attendance))+geom_bar(stat = "identity") 
+p_c2
+p_red2
+
+
+```
+##Secondly, we try to figure out the difference between basketball and baseball under different weather type. We use boxplot to do the comparison. We can find that the average attendances of basketball are almost the same under the normal and abnormal weather type. 
+```{r}
+table_type_c<-inner_join(weather,table_celtics,by="Date")
+boxplot(data=table_type_c,Attendance~sum)
+```
+##From the analysis above, we can find that the basketball attendances are less likely to be affected compared to baseball attendances.
+
