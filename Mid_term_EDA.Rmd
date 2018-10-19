@@ -199,14 +199,7 @@ weather2 <- table_type%>%
   summarise(mean_attendance=mean(Attendance))
 ##Plots
 ggplot(data = table_type)+geom_point(aes(x=sum,y=Attendance))
-p_red1<-boxplot(data=table_type,Attendance~sum)
-p_red1
-##t-test
-table_type2<-table_type[,c("sum","Attendance")]
-table_normal<-filter(table_type2,sum=='normal')
-table_abnormal<-filter(table_type2,sum=="abnormal")
-t.test(table_abnormal$Attendance,table_normal$Attendance)
-##no obvious difference between the attendances on normal and abnormal days.
+
 ```
 
    
@@ -226,6 +219,7 @@ t.test(table_abnormal$Attendance,table_normal$Attendance)
    Besides, we can take the influence of raining on the attendance of Red Sox games as an exmaple. First, define the rainy level as "low", "medium" and "high". Then we use ggplot to graph the bar of the rainy level vs average attendaces. We still do not find any differences in the average attendance among different rainy levels. The last graph also indicates that the rain really has few influences on the attendances.
    
 ```{r}
+library(dplyr)
 table_rain<-weather[,c('Date','PRCP')]
 colnames(table_rain)[1]<-"Date"
 table_rain$Date = as.Date(table_rain$Date)
@@ -237,7 +231,7 @@ Attendance_rain$PRCP <- ifelse(Attendance_rain$PRCP==0,"Low",
 Attendance_rain1<-Attendance_rain%>%
   group_by(PRCP)%>%
   summarise(mean_attendance=mean(Attendance))
-p_red2<-ggplot(Attendance_rain1, aes(x=PRCP, y=mean_attendance))+geom_bar(stat = "identity") 
+p_red2<-ggplot(Attendance_rain1, aes(PRCP, mean_attendance))+geom_bar(stat = "identity") 
 p_red2
 Attendance_rain2<-inner_join(redsox_attendence,table_rain,by="Date")
 table_tmax<-weather[,c("Date","TMAX")]
@@ -252,36 +246,41 @@ p_red4
 ```
 
 
-    Then we think that we should take the tempreture into our considerations. So we draw the scatter plot. From this plot, we see that data gathers around 80F, and the attendance records are high. As we all know, 80F is comfortable for humans to go outside, so we propose that the tempreture has some influence on the attendance. People are more likely to watch games at 80F. 
-
 ## (B)Celtics
-## (C) Comparisons
 
-  Firstly, we focus on differences of what the effects that rain can bring to the attendance between basketball and baseball. From the first graph, we can find the basketball attendance has more obvious trends that, with the increase in rain, the attendances tend to decrease. However, this phenomenon does not fit our consensus. 
+  The same situation happens to Celtics games: they are not largely affected by the weather condition in general.
+  
 ```{r}
-library(plyr)
-table_celtics<-Celtics
-table_celtics$Attend.<-as.numeric(gsub(",","",table_celtics$Attend.))
-colnames(table_celtics)[3]="Attendance"
-join_rain_celtics<-inner_join(table_celtics,weather,by="Date")
-p_c4<-ggplot(data = join_rain_celtics)+geom_smooth(mapping = aes(x=PRCP,y=Attendance))
-p_c4
-p_red4
-##Secondly, we try to figure out the difference between basketball and baseball under different weather type. We use boxplot to do the comparison. We can find that the average attendances of basketball are almost the same under the normal and abnormal weather type. 
+#merge two tables into one
+sub.weather <-weather
+colnames(sub.weather)[6] <- "Date"
+sub.weather$Date <- as.Date(sub.weather$Date)
+EDAtable <- left_join(Celtics,sub.weather, by = "Date")
 
-table_type_c<-inner_join(weather,table_celtics,by="Date")
-boxplot(data=table_type_c,Attendance~sum)
-```
-##From the analysis above, we can find that the basketball attendances are less likely to be affected compared to baseball attendances.
-##Since Basketball is an indoor game, there may be other major factors, other than weather, that could affect the spectator attendance at each game. Therefore, we explored the effect of the popularity of the opponent team on game attendance.
-```{r}
-library(dplyr)
-library(tidyverse)
+#clear out unnecessary data and edit on existing data
+EDAtable <-EDAtable%>% 
+select(Date,Attend.,AWND,TAVG)
+EDAtable <- na.omit(EDAtable)
+EDAtable$Attend. <-as.numeric(gsub(",","",EDAtable$Attend.))
+AttendRate <- (EDAtable$Attend./18624) * 100
+AttendRate <- round(AttendRate,2)
+EDAtable <-cbind(EDAtable,AttendRate)
+
+#now we use EDAtable to explore the relationship between attendace and average wind speed & attendance and average temperature.
 library(ggplot2)
-
+ggplot(data=EDAtable)+
+  geom_point(aes(x=AWND,y=AttendRate),color="blue")
+ggplot(data=EDAtable)+
+  geom_point(aes(x=TAVG,y=AttendRate),color="red")
+```
+  
+  Since Basketball is an indoor game, there may be other major factors, other than weather, that could affect the spectator attendance at each game. Therefore, we explored the effect of the popularity of the opponent team on game attendance.
+  
+```{r}
+library(ggplot2)
 #Collected data on opponent team from the ESPN website
 library(readxl)
-BCeltics <- read_excel("C:/Users/GP/Desktop/MEGHA/RGitHub/MA615/Mid-term Project/BCeltics.xlsx")
+BCeltics <- read_excel("BCeltics.xlsx")
 
 attd <- BCeltics$Attendance*100/18624 #taking the attendance percentage
 
@@ -293,7 +292,8 @@ ggplot(BCeltics)+
   ylab("Attendance Percentage")+
   theme(axis.text.x = element_text(angle = 90))
 ```
-**_The attendance for each game has been plotted above and it shows that the overall attendance percentage is above 85%. There are small variations in the attendance that may be because of the popularity of the opponent team_**
+
+  The attendance for each game has been plotted above and it shows that the overall attendance percentage is above 85%. There are small variations in the attendance that may be because of the popularity of the opponent team.
 
 ```{r}
 #checking if having a star player in the opponent team has an effect on attendance
@@ -305,11 +305,12 @@ ggplot(BCeltics)+
   scale_color_manual(legend_tilte, values = c("palegreen3", "plum4"))
   
 ```
-**_The plot shows that the presence of a star player in the opponent team is accompanied with a consistent and slightly higher attendance compared to not having a star player in the opponent team._**
+
+  The plot shows that the presence of a star player in the opponent team is accompanied with a consistent and slightly higher attendance compared to not having a star player in the opponent team.
 
 
 ```{r}
-
+library(dplyr)
 #Grouping the data by the opponent team and year
 b_celtics <- BCeltics %>%
   mutate(year = substr(x= Date, start = 1, stop = 4)) %>%
@@ -347,9 +348,32 @@ ggplot(c_h)+
   ggtitle("Boston Celtics Vs Less Popular Teams")
 ```
 
-**_We can see that the plot for Boston Celtics Vs Popular Teams has a consistent and slightly higher attendance (above 17000), comapred to Boston Celtics Vs Less Popular Teams. Though it is not a large variation, spectators seem to enjoy games between popular teams more. Existing rivalry between the teams does not seem to have much effect on spectator attendance. Notice that the game Celtics Vs Denver Nuggets in 2015 has an unusually low attendance. This may be because the Celtics lost the previous four games (as shown in the table below)._**
+  We can see that the plot for Boston Celtics Vs Popular Teams has a consistent and slightly higher attendance (above 17000), comapred to Boston Celtics Vs Less Popular Teams. Though it is not a large variation, spectators seem to enjoy games between popular teams more. Existing rivalry between the teams does not seem to have much effect on spectator attendance. Notice that the game Celtics Vs Denver Nuggets in 2015 has an unusually low attendance. This may be because the Celtics lost the previous four games (as shown in the table below).
 ```{r}
-library(knitr)
-include_graphics("C:/Users/GP/Desktop/MEGHA/RGitHub/MA615/Mid-term Project/Capture.png")
+  library(knitr)
+include_graphics("Capture.png")
+```
+  
+
+## (C) Comparisons
+
+   We focus on the different effect of rain that brings to the attendance at Celtics and Red Sox. From the first graph, we can find the basketball attendance has more obvious trends that, with the increase in rain, the attendances tend to decrease. However, this phenomenon does not fit our consensus. 
+```{r}
+library(dplyr)
+table_celtics<-Celtics
+table_celtics$Attend.<-as.numeric(gsub(",","",table_celtics$Attend.))
+colnames(table_celtics)[3]="Attendance"
+join_rain_celtics<-inner_join(table_celtics,weather,by="Date")
+p_c4<-ggplot(data = join_rain_celtics)+geom_smooth(mapping = aes(x=PRCP,y=Attendance))
+p_c4
+p_red4
+##Secondly, we try to figure out the difference between basketball and baseball under different weather type. We use boxplot to do the comparison. We can find that the average attendances of basketball are almost the same under the normal and abnormal weather type. 
+
+table_type_c<-inner_join(weather,table_celtics,by="Date")
+boxplot(data=table_type_c,Attendance~sum)
+```
+
+   From the analysis above, we can find that the basketball attendances are less likely to be affected compared to baseball attendances.
+
 ```
 
