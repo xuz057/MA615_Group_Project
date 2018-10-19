@@ -1,0 +1,225 @@
+---
+title: "mid_term_shiny"
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE}
+library(tidyverse)
+library(stringr)
+
+weather1<-read.csv("weather.csv")
+weather1$DATE<-as.Date(weather1$DATE)
+#weather2<-read.csv("1498792.csv")
+#baseball data
+library(XML)
+library(RCurl)
+library(rlist)
+
+url1 <- "https://www.baseball-reference.com/teams/BOS/"
+url2 <- "-schedule-scores.shtml"
+
+years <- c(2012:2017)
+
+urls <- str_c(url1, years, url2, sep = "")
+
+filenames <- str_c("mr", years, sep = "")
+
+N <- length(urls)
+
+for (i in 1:N){
+  suppressMessages(
+    assign(filenames[i], readHTMLTable(getURL(urls[i])))
+  )
+  
+  file <- get(filenames[i])[[1]]
+  file<-file[!str_detect(file$`Gm#`,"Gm#"),]
+  colnames(file)[1]<-"YYYY"
+  file[,1]<-years[i]
+  if(i == 1){
+    redsox <- file
+  }
+  
+  else{
+    redsox <- rbind.data.frame(redsox, file)
+  }
+}
+
+redsox$Date<-paste(redsox$Date,redsox$YYYY,sep = ",")
+redsox$Date<-str_replace_all(redsox$Date," \\((.*?)\\)","")
+redsox$Date<-as.Date(redsox$Date, format="%A, %b %d, %Y")
+redsox<-redsox[!str_detect(redsox[,5],"@"),]
+
+redsox_attendance<-subset(redsox,select=c(Date,Time,Attendance))
+#str(redsox_attendance)#Date:Date, Time:factor, Attendence:factor
+redsox_attendance$Attendance<-str_replace_all(redsox_attendance$Attendance,",","")
+redsox_attendance$Attendance<-as.numeric(redsox_attendance$Attendance)
+```
+## Attendance Overview
+```{r echo=FALSE}
+library(shiny)
+library(ggplot2)
+library(lubridate)
+ui<-fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+        
+          radioButtons("years", label = "Year of the matches",
+                choices = c(2012, 2013, 2014, 2015, 2016, 2017)),
+          checkboxInput("smooth", label = "Add smoother?", value = FALSE)
+      
+    ),
+    mainPanel(
+      plotOutput(outputId = "ggplot")
+    )
+  )
+  
+)
+server<-function(input,output){
+output$ggplot<-renderPlot({
+  
+  #attendance_weather<-inner_join(redsox_attendance,weather1,by=c("Date" = "DATE"))
+  redsox_attendance_year<-redsox_attendance[year(redsox_attendance$Date)==input$years,]
+  
+  if(input$smooth){
+    ggplot(redsox_attendance_year) + geom_point(mapping = aes(x=Date,y=Attendance)) + geom_smooth(mapping = aes(x=Date,y=Attendance))
+    }
+  else{
+    ggplot(redsox_attendance_year) + geom_point(mapping = aes(x=Date,y=Attendance)) 
+  }
+
+})
+}
+shinyApp(ui = ui, server = server)
+```
+
+## Weather Overview
+```{r echo=FALSE}
+library(dplyr)
+ui<-fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+        
+              radioButtons("years", label = "Year of the matches",
+                choices = c(2012, 2013, 2014, 2015, 2016, 2017))
+      
+    ),
+    mainPanel(
+      plotOutput(outputId = "barplot")
+    )
+  )
+  
+)
+server<-function(input,output){
+output$barplot<-renderPlot({
+  
+  attendance_weather<-inner_join(redsox_attendance,weather1,by=c("Date" = "DATE"))
+  attendance_weather_year<-attendance_weather[year(attendance_weather$Date)==input$years,]
+  WT<-c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13","WT14","WT15","WT16","WT17","WT18","WT19","WT22")
+  description<-c("Fog","Heavy Fog","Thunder","Ice pellets","Hail","Glaze or rime"," Smoke","Blowing","Mist","Drizzle","Freezing drizzle","Rain","Freezing rain","Snow","Unknown source of precipitation","Ice fog")
+  for(i in 1:length(WT)){
+    a<-select(attendance_weather_year,Date,Attendance,WT[i])
+    a<-a[which(a[,WT[i]]==1),]
+    if(dim(a)[1]!=0){
+       colnames(a)<-c("Date","Attendance","weather_type")
+       a$weather_type<-description[i]
+       if(i==1)
+         file<-a
+       else
+         file<-rbind.data.frame(file,a)
+    }
+  }
+  t<-0
+  for(i in 1:length(attendance_weather_year)){
+    if(sum(is.na(attendance_weather_year[i,WT]))==16){
+      t<-t+1
+      if(t==1)
+        normal<-attendance_weather_year[i,c("Date","Attendance")]
+      else
+        normal<-rbind.data.frame(normal,attendance_weather_year[i,c("Date","Attendance")])
+    }
+    
+  }
+  weather_type<-rep("normal",dim(normal)[1])
+  normal<-cbind.data.frame(normal,weather_type)
+  attendance_weather_type<-rbind.data.frame(file,normal)
+  month<-month(attendance_weather_type$Date)
+  month<-as.factor(month)
+  attendance_weather_type<-cbind.data.frame(attendance_weather_type,month)
+  
+ggplot(attendance_weather_type) + geom_bar(mapping=aes(x=weather_type,fill=month)) 
+})
+}
+shinyApp(ui = ui, server = server)
+```
+## Weather~Attendance
+```{r echo=FALSE}
+library(dplyr)
+ui<-fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+        
+              radioButtons("years", label = "Year of the matches",
+                choices = c(2012, 2013, 2014, 2015, 2016, 2017))
+      
+    ),
+    mainPanel(
+      plotOutput(outputId = "barplot")
+    )
+  )
+  
+)
+server<-function(input,output){
+output$barplot<-renderPlot({
+  
+  attendance_weather<-inner_join(redsox_attendance,weather1,by=c("Date" = "DATE"))
+  attendance_weather_year<-attendance_weather[year(attendance_weather$Date)==input$years,]
+  WT<-c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13","WT14","WT15","WT16","WT17","WT18","WT19","WT22")
+  description<-c("Fog","Heavy Fog","Thunder","Ice pellets","Hail","Glaze or rime"," Smoke","Blowing","Mist","Drizzle","Freezing drizzle","Rain","Freezing rain","Snow","Unknown source of precipitation","Ice fog")
+  for(i in 1:length(WT)){
+    a<-select(attendance_weather_year,Date,Attendance,WT[i])
+    a<-a[which(a[,WT[i]]==1),]
+    if(dim(a)[1]!=0){
+       colnames(a)<-c("Date","Attendance","weather_type")
+       a$weather_type<-description[i]
+       if(i==1)
+         file<-a
+       else
+         file<-rbind.data.frame(file,a)
+    }
+  }
+  t<-0
+  for(i in 1:length(attendance_weather_year)){
+    if(sum(is.na(attendance_weather_year[i,WT]))==16){
+      t<-t+1
+      if(t==1)
+        normal<-attendance_weather_year[i,c("Date","Attendance")]
+      else
+        normal<-rbind.data.frame(normal,attendance_weather_year[i,c("Date","Attendance")])
+    }
+    
+  }
+  weather_type<-rep("normal",dim(normal)[1])
+  normal<-cbind.data.frame(normal,weather_type)
+  attendance_weather_type<-rbind.data.frame(file,normal)
+  month<-month(attendance_weather_type$Date)
+  month<-as.factor(month)
+  attendance_weather_type<-cbind.data.frame(attendance_weather_type,month)
+  
+ggplot(attendance_weather_type,aes(x=weather_type,y=Attendance,fill=weather_type)) + geom_boxplot()+ theme(axis.text.x = element_text(angle = 0)) 
+})
+}
+shinyApp(ui = ui, server = server)
+```
+
+
+
+
+
+
+
+
