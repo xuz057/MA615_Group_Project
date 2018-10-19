@@ -267,21 +267,6 @@ join_rain_celtics<-inner_join(table_celtics,weather,by="Date")
 p_c4<-ggplot(data = join_rain_celtics)+geom_smooth(mapping = aes(x=PRCP,y=Attendance))
 p_c4
 p_red4
-```
-
-##So I use the second plot to compare the difference between basketball and baseball. From this bar chart, we can find the average basketball attendance has much little difference under the different level of rains. So our group thinks that the influences of rain on the basketball attendances is less than baseball attendance.
-```{r}
-rainlevel<-Attendance_rain[,c("Date","PRCP")]
-rain_level_c<-inner_join(rainlevel,table_celtics,by="Date")
-Attendance_rain2<-rain_level_c%>%
-  group_by(PRCP)%>%
-  summarise(mean_attendance=mean(Attendance))
-p_c2<-ggplot(Attendance_rain2, aes(PRCP, mean_attendance))+geom_bar(stat = "identity") 
-p_c2
-p_red2
-
-
-```
 ##Secondly, we try to figure out the difference between basketball and baseball under different weather type. We use boxplot to do the comparison. We can find that the average attendances of basketball are almost the same under the normal and abnormal weather type. 
 ```{r}
 table_type_c<-inner_join(weather,table_celtics,by="Date")
