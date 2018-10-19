@@ -1,5 +1,5 @@
 ---
-title: "Midterm Project Final Report"
+title: "Midterm Project Report"
 author: "Jianhao Yan, Guangyan Yu, Xuan Zhu, Megha Pandit"
 date: "10/18/2018"
 output:
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
   
   The goal of this project is to explore the relationship between weather conditions and attendance at Red Sox and Celtics games in the greater Boston area. Thus, we need to prepare three datasets: one for the weather records, and the other two for adttendance at Red Sox and Celtics games, separately.
   
-  Weather data is easy to find, as the .csv file can be directly downloaded.
+  Weather data is easy to find, as the .csv file can be directly downloaded.We go to https://www.ncdc.noaa.gov/cdo-web/, then click "Search Tool". We select the "Daily Summaries" dataset from 2012-01-01~2017-12-31, with the "BOSTON, MA US" station, and we choose to collect data on Precipitation, Air Temperature, Wind, and Weather Type.
   
   For Celtics, the thing becomes a little complicated. We used the following procedures to acquire data from multiple webpages.
   
@@ -100,7 +100,13 @@ Celtics$Date <- as.Date(Celtics$Date,format='%B %d, %Y')
 ```
    
   
-  For Red Sox games, we use the site https://www.baseball-reference.com/teams/. The procedures are similar to Celtics.
+  For Red Sox games, the procedures are similar to Celtics.
+
+Step 1. Go to https://www.baseball-reference.com/teams/BOS/2017-schedule-scores.shtml. In this website, there is a table contains data of mathes including date, attendance and wheather it is a home or away game, etc. 
+
+Step 2. We find that with different game year, the URL of this website just changes in the year number, so that it is not hard for us to gather the game-by-game table from 2012 to 2017. The procedure of scraping data is an easy for loop.
+
+Step 3. Clean and organize the data so that it is ready for analysis.
  
 ```{r}
 #baseball data
