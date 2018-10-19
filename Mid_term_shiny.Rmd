@@ -59,7 +59,7 @@ redsox_attendance<-subset(redsox,select=c(Date,Time,Attendance))
 redsox_attendance$Attendance<-str_replace_all(redsox_attendance$Attendance,",","")
 redsox_attendance$Attendance<-as.numeric(redsox_attendance$Attendance)
 ```
-## Attendance Overview
+## Baseball attendance Overview
 ```{r echo=FALSE}
 library(shiny)
 library(ggplot2)
@@ -116,7 +116,7 @@ ui<-fluidPage(
 )
 server<-function(input,output){
 output$barplot<-renderPlot({
-  
+  #data transformation
   attendance_weather<-inner_join(redsox_attendance,weather1,by=c("Date" = "DATE"))
   attendance_weather_year<-attendance_weather[year(attendance_weather$Date)==input$years,]
   WT<-c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13","WT14","WT15","WT16","WT17","WT18","WT19","WT22")
@@ -156,7 +156,9 @@ ggplot(attendance_weather_type) + geom_bar(mapping=aes(x=weather_type,fill=month
 }
 shinyApp(ui = ui, server = server)
 ```
-## Weather~Attendance
+
+##Weather~Baseball attendance
+
 ```{r echo=FALSE}
 library(dplyr)
 ui<-fluidPage(
@@ -211,6 +213,169 @@ output$barplot<-renderPlot({
   attendance_weather_type<-cbind.data.frame(attendance_weather_type,month)
   
 ggplot(attendance_weather_type,aes(x=weather_type,y=Attendance,fill=weather_type)) + geom_boxplot()+ theme(axis.text.x = element_text(angle = 0)) 
+})
+}
+shinyApp(ui = ui, server = server)
+```
+
+```{r echo=FALSE}
+library(rvest)
+library(tidyverse)
+
+#create a table to store Urls
+urls <- matrix(c(1:54),54,1)
+
+
+for( i in 2013:2018) {  # change the part of the year in urls
+#use i in the string
+  i <- as.character(i)
+  
+#create urls by the rule
+OCT <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-october.html", sep = "_")
+NOV <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-november.html", sep = "_")
+DEC <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-december.html", sep = "_")
+JAN <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-january.html", sep = "_")
+FEB <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-february.html", sep = "_")
+MAR <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-march.html", sep = "_")
+APR <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-april.html", sep = "_")
+MAY <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-may.html", sep = "_")
+JUN <- paste("https://www.basketball-reference.com/leagues/NBA",i,"games-june.html", sep = "_")
+
+i <- as.numeric(i)
+
+#assign the links to our table
+
+urls[i-2012] <- OCT
+urls[i-2012+6] <- NOV
+urls[i-2012+12] <- DEC
+urls[i-2012+18] <- JAN
+urls[i-2012+24] <- FEB
+urls[i-2012+30] <- MAR
+urls[i-2012+36] <- APR
+urls[i-2012+42] <- MAY
+urls[i-2012+48] <- JUN
+}
+
+# 'Urls' has been created successfully.
+# Now Scrape data from the website by using our table
+for (i in 1:54){
+templink <- read_html(urls[i])
+a <- templink%>%html_nodes("table")%>%.[[1]]%>%html_table()
+
+#data transformation
+colnames(a)[5] <- "City"
+colnames(a)[4] <- "3"
+colnames(a)[7] <- "1"
+colnames(a)[8] <- "2"
+a <- a %>%
+select(Date,City,Attend.)%>%
+filter(City =="Boston Celtics") 
+
+if (i == 1) {
+  table <- a
+}
+#conbime all the data into a single table
+table <- rbind(a,table)
+}
+
+table$Date <- substr(table$Date,6,17)
+table$Date <- as.Date(table$Date,format='%B %d, %Y')
+
+table$Attend.<-str_replace_all(table$Attend.,",","")
+table$Attend.<-as.numeric(table$Attend.)
+colnames(table)[3]<-"Attendance"
+attendance_weather_celtics<-inner_join(table,weather1,by=c("Date" = "DATE"))
+```
+##Celtics attendane overview
+```{r echo=FALSE}
+library(shiny)
+library(ggplot2)
+library(lubridate)
+ui<-fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+        
+          radioButtons("years", label = "Year of the matches",
+                choices = c(2012, 2013, 2014, 2015, 2016, 2017)),
+          checkboxInput("smooth", label = "Add smoother?", value = FALSE)
+      
+    ),
+    mainPanel(
+      plotOutput(outputId = "ggplot")
+    )
+  )
+  
+)
+server<-function(input,output){
+output$ggplot<-renderPlot({
+  
+  table_year<-table[year(table$Date)==input$years,]
+  
+  if(input$smooth){
+    ggplot(table_year) + geom_point(mapping = aes(x=Date,y=Attendance)) + geom_smooth(mapping = aes(x=Date,y=Attendance))
+    }
+  else{
+    ggplot(table_year) + geom_point(mapping = aes(x=Date,y=Attendance)) 
+  }
+
+})
+}
+shinyApp(ui = ui, server = server)
+```
+
+
+##Weather~Celtics attendane
+```{r echo=FALSE}
+ui<-fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+        
+              radioButtons("years", label = "Year of the matches",
+                choices = c(2012, 2013, 2014, 2015, 2016, 2017))
+      
+    ),
+    mainPanel(
+      plotOutput(outputId = "barplot")
+    )
+  )
+  
+)
+server<-function(input,output){
+output$barplot<-renderPlot({
+  attendance_weather_celtics_year<-attendance_weather_celtics[year(attendance_weather_celtics$Date)==input$years,]
+  WT<-c("WT01","WT02","WT03","WT04","WT05","WT06","WT08","WT09","WT13","WT14","WT15","WT16","WT17","WT18","WT19","WT22")
+  description<-c("Fog","Heavy Fog","Thunder","Ice pellets","Hail","Glaze or rime"," Smoke","Blowing","Mist","Drizzle","Freezing drizzle","Rain","Freezing rain","Snow","Unknown source of precipitation","Ice fog")
+  for(i in 1:length(WT)){
+    b<-select(attendance_weather_celtics_year,Date,Attendance,WT[i])
+    b<-b[which(b[,WT[i]]==1),]
+    if(dim(b)[1]!=0){
+       colnames(b)<-c("Date","Attendance","weather_type")
+       b$weather_type<-description[i]
+       if(i==1)
+         file_b<-b
+       else
+         file_b<-rbind.data.frame(file_b,b)
+    }
+  }
+  t<-0
+  for(i in 1:length(attendance_weather_celtics_year)){
+    if(sum(is.na(attendance_weather_celtics_year[i,WT]))==16){
+      t<-t+1
+      if(t==1)
+        normal<-attendance_weather_celtics_year[i,c("Date","Attendance")]
+      else
+        normal<-rbind.data.frame(normal,attendance_weather_celtics_year[i,c("Date","Attendance")])
+    }
+    
+  }
+  weather_type<-rep("normal",dim(normal)[1])
+  normal<-cbind.data.frame(normal,weather_type)
+  attendance_weather_type_celtics<-rbind.data.frame(file_b,normal)
+  month<-month(attendance_weather_type_celtics$Date)
+  month<-as.factor(month)
+  attendance_weather_type_celtics<-cbind.data.frame(attendance_weather_type_celtics,month)
+  
+ggplot(attendance_weather_type_celtics,aes(x=weather_type,y=Attendance,fill=weather_type)) + geom_boxplot()+ theme(axis.text.x = element_text(angle = 0)) 
 })
 }
 shinyApp(ui = ui, server = server)
