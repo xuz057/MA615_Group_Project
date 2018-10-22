@@ -1,0 +1,57 @@
+---
+title: "Textmining Group2"
+author: "Xuan,Megha, Yifu,Sky"
+date: "October 22, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Analysis
+
+```{r}
+#read raw pdf file
+library(pdftools)
+text <- pdf_text("Justice.pdf") #Book: A Theory of Justice
+
+#make data frame
+library(dplyr)
+library(tidytext)
+text2 <- data_frame(line = 1:561, text = text)
+text2 <- text2 %>% filter(text != "")
+text2 <-text2 %>%unnest_tokens(word,text)
+#Word Count
+#get rid of stop-words
+text2<- text2 %>% anti_join(stop_words)
+text3 <- text2 %>%count(word, sort = TRUE)
+#ggplot
+library(ggplot2)
+text3 %>%filter(n > 600) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n)) +geom_col() +xlab(NULL) +coord_flip()
+
+```
+
+So we can see that this book is focused on morality, society and principles of justice.
+
+##Sentiment Analysis
+
+```{r}
+library(tidyr)
+library(stringr)
+#get rid of any non-characters
+text2 <- text2 %>%mutate(word = str_extract(word,"[a-z']+"))
+text2 <-na.omit(text2)
+#sentiment
+text4 <- text2 %>% 
+  inner_join(get_sentiments("afinn"))%>%
+  group_by(index = line) %>%
+  summarise(sentiment = sum(score)) %>% 
+  mutate(method = "AFINN")
+#ggplot
+library(ggplot2)
+ggplot(text4,aes(index, sentiment))+geom_col(show.legend = FALSE)+xlim(0,500)+ylim(-150,10)
+```
+
