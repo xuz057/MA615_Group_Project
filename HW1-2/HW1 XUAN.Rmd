@@ -1,0 +1,63 @@
+---
+title: "Assignment 1"
+author: "Xuan Zhu"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Document assignment
+
+Consider the following situation:  
+
+A sloppy printer produces books with an average of 2 misprints per page. You want to
+know how many pages in a 50 page book will have more than k misprints. Make an n x k table that shows the probability that n or fewer pages in a 50 page book will have more than k misprints.  
+
+
+
+Explanation:
+
+This problem contains two parts to solve. To find out the probability that n pages in the book will have more than k misprints, we need to figure out two things:
+
+(a) The probability that n pages in the book of 50 pages are selected, or are seen as 'successful trials' in a binomial distribution. For exmaple, if n = 10, the prob(a) wil be
+
+
+$\binom{50}{10} p^{10}q^{40}$
+
+
+P and q are solved as following.
+
+
+(b) The probability that one page has more than k misprints. This should be solved by using Poisson Distribution because k misprints occur with a known constant rate 2 per page and it is reasonable to suppose that the number of misprints on each page is independent of one another. Then, we set x = the number of misprints shown on one page and we get:
+
+
+$P_0(x=k) = e^{-2}\frac{2^k}{k!}$
+
+
+So $P_1(x>k) = 1-P(x \leq$ k)= 1-$\sum_{i=0}^k e^{-2}\frac{2^k}{k!}$
+
+
+This is the prob that a page will have more than k misprints.
+
+
+So our final answer is $\binom{50}{n} p^{n}q^{50-n}$ with p = 1-$\sum_{i=0}^k e^{-2}\frac{2^k}{k!}$
+
+
+```{r}
+library(knitr)
+library(kableExtra)
+table <- as.data.frame(matrix(ncol = 10,nrow=50, dimnames = list(c(1:50),c(1:10))))
+for ( i in 1:50) { 
+  for (j in 1:10){
+    p0 <- ppois(j,lambda = 2,lower.tail = FALSE)
+    table[i,j] = pbinom(i, size=50, prob=p0) 
+  }}
+kableExtra::kable(digits = 10,x =table,row.names = TRUE)
+
+```
+
+
+
+![include a picture](pic.jpg)
