@@ -1,0 +1,440 @@
+install.packages("rgdal")
+usstates <- readOGR("C:/Users/xuz057/Desktop/R_Shiny",layer = "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+library(rgdal)
+usstates <- readOGR("C:/Users/xuz057/Desktop/R_Shiny",layer = "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+usstates <- rgdal::readOGR(""C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m.shp", "OGRGeoJSON")
+readOGR("C:/Users/xuz057/Desktop/R_Shiny",layer = "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+# Application title
+titlePanel("Old Faithful Geyser Data"),
+# Sidebar with a slider input for number of bins
+sidebarLayout(
+sidebarPanel(
+sliderInput("bins",
+"Number of bins:",
+min = 1,
+max = 50,
+value = 30)
+),
+# Show a plot of the generated distribution
+mainPanel(
+plotOutput("distPlot")
+)
+)
+)
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+output$distPlot <- renderPlot({
+# generate bins based on input$bins from ui.R
+x    <- faithful[, 2]
+bins <- seq(min(x), max(x), length.out = input$bins + 1)
+# draw the histogram with the specified number of bins
+hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+}
+# Run the application
+shinyApp(ui = ui, server = server)
+library(shiny)
+usstates <- rgdal::readOGR(""C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m.shp", "OGRGeoJSON")
+# readOGR("C:/Users/xuz057/Desktop/R_Shiny",layer = "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+# Application title
+titlePanel("Old Faithful Geyser Data"),
+# Sidebar with a slider input for number of bins
+sidebarLayout(
+sidebarPanel(
+sliderInput("bins",
+"Number of bins:",
+min = 1,
+max = 50,
+value = 30)
+),
+# Show a plot of the generated distribution
+mainPanel(
+plotOutput("distPlot")
+)
+)
+)
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+output$distPlot <- renderPlot({
+# generate bins based on input$bins from ui.R
+x    <- faithful[, 2]
+bins <- seq(min(x), max(x), length.out = input$bins + 1)
+# draw the histogram with the specified number of bins
+hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+}
+# Run the application
+shinyApp(ui = ui, server = server)
+usstates <- rgdal::readOGR(""C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m.shp", "OGRGeoJSON")
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+# Application title
+titlePanel("Old Faithful Geyser Data"),
+# Sidebar with a slider input for number of bins
+sidebarLayout(
+sidebarPanel(
+sliderInput("bins",
+"Number of bins:",
+min = 1,
+max = 50,
+value = 30)
+),
+# Show a plot of the generated distribution
+mainPanel(
+plotOutput("distPlot")
+)
+)
+)
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+output$distPlot <- renderPlot({
+# generate bins based on input$bins from ui.R
+x    <- faithful[, 2]
+bins <- seq(min(x), max(x), length.out = input$bins + 1)
+# draw the histogram with the specified number of bins
+hist(x, breaks = bins, col = 'darkgray', border = 'white')
+})
+}
+# Run the application
+shinyApp(ui = ui, server = server)
+library(shiny)
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m.shp", "OGRGeoJSON")
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m.shp", "OGRGeoJSON")
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/cb_2017_us_state_20m.shp", "OGRGeoJSON")
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/cb_2017_us_state_20m.shp", "cb_2017_us_state_20m")
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/cb_2017_us_state_20m.shp", "cb_2017_us_state_20m",GDAL1_integer64_policy = TRUE)
+library(tidyverse)
+install.packages("tidyverse")
+names(states)
+names(usstates)
+View(usstates)
+usstates <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m", "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+names(usstates)
+View(usstates)
+states <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m", "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+library(tidyverse)
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+install.packages("leaflet")
+library(leaflet)
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m %>% addPolygons()
+dmapD <- read_csv("dMapD.csv")
+View(dmapD)
+m <- leaflet(dmapD) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m %>% addPolygons()
+m <- leaflet(dmapD) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m
+m %>% addPolygons()
+View(m)
+View(states)
+states$NAME
+dmapD$st_abrev <-state.name[match(dmapD$st_abrev,state.abb)]
+install.packages("openintro")
+library(openintro)
+abbr2state(dmapD$st_abrev)
+na.omit(dmapD)
+dmapD <- na.omit(dmapD)
+dmapD <- na.omit(dmapD)[,-1]
+colnames(dmapD$st_abrev)<- "NAME"
+colnames(dmapD)[1]<- "NAME"
+colnames(dmapD)<- "NAME""DonationsD""DonorsD"
+colnames(dmapD)<- c("NAME","DonationsD","DonorsD")
+states %<>% left_join(states,dmapD,by="NAME")
+install.packages("magrittr")
+install.packages("magrittr")
+library(magrittr)
+states %<>% left_join(states,dmapD,by="NAME")
+m %>% addPolygons()
+dmapD$DonationsD <- log10(dmapD$DonationsD)
+colnames(dmapD)<- c("NAME","log10(DonationsD)","DonorsD")
+bins <- c(3, 3.5, 4, 4.5,5,5.5, 6,6.5, Inf)
+bins <- c(3, 3.5, 4, 4.5,5,5.5, 6,6.5, Inf)
+pal <- colorBin("YlOrRd", domain = dmapD$`log10(DonationsD)`, bins = bins)
+m %>% addPolygons(
+fillColor = ~pal(dmapD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7)
+m %>% addPolygons(
+fillColor = ~pal(dmapD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7,
+highlight = highlightOptions(
+weight = 5,
+color = "#666",
+dashArray = "",
+fillOpacity = 0.7,
+bringToFront = TRUE))
+labels <- sprintf(
+"<strong>%s</strong><br/>%g Donors ",
+dmapD$NAME, dmapD$DonorsD
+) %>% lapply(htmltools::HTML)
+m %>% addPolygons(
+fillColor = ~pal(dmapD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7,
+highlight = highlightOptions(
+weight = 5,
+color = "#666",
+dashArray = "",
+fillOpacity = 0.7,
+bringToFront = TRUE),
+label = labels,
+labelOptions = labelOptions(
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))
+states$NAME
+typeof(states)
+states %<>% left_join(states,dmapD,by="NAME")
+states %<>% as.data.frame(states)
+View(states)
+states %<>% left_join(states,dmapD,by="NAME")
+states %<>% full_join(states,dmapD,by="NAME")
+View(states)
+states <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m", "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+states %<>% as.data.frame(states)
+statesD <- full_join(states,dmapD,by="NAME")
+View(statesD)
+m <- leaflet(statesD) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m
+m %>% addPolygons()
+m <- leaflet(statesD) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m %>% addPolygons()
+View(states)
+states <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m", "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+View(states)
+states_df %<>% as.data.frame(states)
+states_df <- as.data.frame(states)
+statesD <- full_join(states_df,dmapD,by="NAME")
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))
+m %>% addPolygons()
+pal <- colorBin("YlOrRd", domain = statesD$`log10(DonationsD)`, bins = bins)
+labels <- sprintf(
+"<strong>%s</strong><br/>%g Donors ",
+statesD$NAME, statesD$DonorsD
+) %>% lapply(htmltools::HTML)
+m %>% addPolygons(
+fillColor = ~pal(statesD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7,
+highlight = highlightOptions(
+weight = 5,
+color = "#666",
+dashArray = "",
+fillOpacity = 0.7,
+bringToFront = TRUE),
+label = labels,
+labelOptions = labelOptions(
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))%>%
+addLegend(pal = pal, values = ~statesD$`log10(DonationsD)`, opacity = 0.7, title = NULL,
+position = "bottomright")
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))%>% addLegend(pal = pal, values = ~statesD$`log10(DonationsD)`, opacity = 0.7, title = NULL,
+position = "bottomright")
+m %>% addPolygons(
+fillColor = ~pal(statesD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7,
+highlight = highlightOptions(
+weight = 5,
+color = "#666",
+dashArray = "",
+fillOpacity = 0.7,
+bringToFront = TRUE),
+label = labels,
+labelOptions = labelOptions(
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))%>% addLegend(pal = pal, values = ~statesD$`log10(DonationsD)`, opacity = 0.7, title = NULL,
+position = "bottomright")
+install.packages("RColorBrewer")
+install.packages("RColorBrewer")
+#This is the datas from Haviland's sample code
+dmapR <- read_csv("dMapR.csv")
+#This is the datas from Haviland's sample code
+dmapR <- read_csv("dMapR.csv")
+abbr2state(dmapR$st_abrev)
+dmapR <- na.omit(dmapR)[,-1]
+colnames(dmapR)<- c("NAME","log10(DonationsR)","DonorsR")
+dmapR$`log10(DonationsR)` <- log10(dmapR$`log10(DonationsR)`)
+statesR <- full_join(states_df,dmapR,by="NAME")
+View(statesR)
+#This is the datas from Haviland's sample code
+dmapR <- read_csv("dMapR.csv")
+View(dmapR)
+abbr2state(dmapR$st_abrev)
+dmapR$st_abrev <-abbr2state(dmapR$st_abrev)
+View(dmapR)
+dmapR <- na.omit(dmapR)[,-1]
+colnames(dmapR)<- c("NAME","log10(DonationsR)","DonorsR")
+dmapR$`log10(DonationsR)` <- log10(dmapR$`log10(DonationsR)`)
+View(dmapR)
+statesR <- full_join(states_df,dmapR,by="NAME")
+View(dmapR)
+View(statesR)
+m <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))%>% addPolygons()
+#create bins and labels
+bins <- c(2.5, 3.5, 4, 4.5,5,5.5, 6,6.5, Inf)
+pal <- colorBin("YlOrRd", domain = statesD$`log10(DonationsD)`, bins = bins)
+labels <- sprintf(
+"<strong>%s</strong><br/>%g Donors ",
+statesD$NAME, statesD$DonorsD
+) %>% lapply(htmltools::HTML)
+mD <- leaflet(states) %>%
+setView(-96, 37.8, 4) %>%
+addTiles("MapBox", options = providerTileOptions(
+id = "mapbox.light",
+accessToken = Sys.getenv('MAPBOX_ACCESS_TOKEN')))%>% addPolygons(fillColor = ~pal(statesD$`log10(DonationsD)`),
+weight = 2,
+opacity = 1,
+color = "white",
+dashArray = "3",
+fillOpacity = 0.7,
+highlight = highlightOptions(
+weight = 5,
+color = "#666",
+dashArray = "",
+fillOpacity = 0.7,
+bringToFront = TRUE),
+label = labels,
+labelOptions = labelOptions(
+style = list("font-weight" = "normal", padding = "3px 8px"),
+textsize = "15px",
+direction = "auto"))%>% addLegend(pal = pal, values = ~statesD$`log10(DonationsD)`, opacity = 0.7, title = NULL,
+position = "bottomright")
+mD
+shiny::runApp()
+runApp()
+library(shiny)
+library(rgdal)
+library(tidyverse)
+library(leaflet)
+library(openintro)
+library(magrittr)
+library(RColorBrewer)
+#Shiny Configuration
+r_colors <- rgb(t(col2rgb(colors()) / 255))
+names(r_colors) <- colors()
+#Shape File Read-in
+#This is the original Shapefile
+states <- rgdal::readOGR("C:/Users/xuz057/Desktop/R_Shiny/gz_2010_us_040_00_20m", "gz_2010_us_040_00_20m",GDAL1_integer64_policy = TRUE)
+#This is the df that we can use join functions
+states_df <- as.data.frame(states)
+#This is the datas from Haviland's sample code
+dmapR <- read_csv("dMapR.csv")
+dmapD <- read_csv("dMapD.csv")
+View(dmapD)
+#Data Transformation
+dmapD$st_abrev <-abbr2state(dmapD$st_abrev)
+dmapR$st_abrev <-abbr2state(dmapR$st_abrev)
+dmapD <- na.omit(dmapD)[,-1]
+dmapR <- na.omit(dmapR)[,-1]
+colnames(dmapD)<- c("NAME","log10(DonationsD)","DonorsD")
+colnames(dmapR)<- c("NAME","log10(DonationsR)","DonorsR")
+dmapD$`log10(DonationsD)` <- log10(dmapD$`log10(DonationsD)`)
+dmapR$`log10(DonationsR)` <- log10(dmapR$`log10(DonationsR)`)
+#These are the ready-to-use shapefiles we will use in our maps
+statesD <- full_join(states_df,dmapD,by="NAME")
+statesR <- full_join(states_df,dmapR,by="NAME")
+View(statesD)
+View(states_df)
+states_df$NAME <- as.character(states_df$NAME)
+#These are the ready-to-use shapefiles we will use in our maps
+statesD <- full_join(states_df,dmapD,by="NAME")
+statesR <- full_join(states_df,dmapR,by="NAME")
+# Define UI
+ui <- fluidPage(
+leafletOutput("mymap",width = "100%"),
+titlePanel("Election Donation Information"),
+sidebarLayout(
+sidebarPanel(selectInput("DorR","Democrats or Republicans?",
+choices=c("Democrats"=statesD$`log10(DonationsD)`,"Republicans"=statesR$`log10(DonationsR)`),selected="Democrats"))
+),mainPanel())
+runApp()
+dmapD <- read.csv("dmapD.csv")
+View(dmapD)
+#This is the datas from Haviland's sample code
+dmapR <- read_csv("dMapR.csv")
+#This is the datas from Haviland's sample code
+dmapR <- read.csv("dMapR.csv")
+dmapD <- read.csv("dMapD.csv")
+runApp()
+runApp()
+# Define UI
+ui <- fluidPage(
+titlePanel("Election Donation Information"),
+sidebarLayout(
+sidebarPanel(selectInput("DorR","Democrats or Republicans?",
+choices=c("Democrats"=statesD$`log10(DonationsD)`,"Republicans"=statesR$`log10(DonationsR)`),selected="Democrats"))
+),mainPanel(leafletOutput("mymap",width = "100%")))
+runApp()
+runApp()
+runApp()
