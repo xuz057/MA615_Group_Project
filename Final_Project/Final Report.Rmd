@@ -1,0 +1,250 @@
+---
+title: "MA615 Project Report"
+subtitle: "Using Benford's Law to Study the Current Ratio of Corporate Bankruptcy"
+author: "Xuan Zhu"
+date: 12/14/2018
+output:
+   pdf_document:
+      fig_caption: true
+      number_sections: true
+fontsize: 12pt
+header-includes:
+   - \usepackage{setspace}
+   - \onehalfspacing
+---
+
+
+\tableofcontents 
+\vspace{.5in}
+
+----------------
+
+\vspace{.5in}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+pacman::p_load(knitr,foreign,tidyverse,ggplot2)
+library(BenfordTests)
+library(benford.analysis)
+library(kableExtra)
+
+```
+
+#Abstract
+
+The current ratio is one of the indicators that analysts use to predict corporate bankruptcy in a financial forecasting period. In this project, Benford's law is applied to explore whether the distribution of the first leading digits has a pattern that helps analysts be more alert to unusual reports.
+
+
+#Introduction
+
+This chapter aims to introduce some financial concepts and mathematical techniques that are related to the project. Section 2.1 breaks down the concept of the current ratio, discusses its significance in predicting corporate bankruptcy, and states its limitations. Section 2.2 gives a general explanation of Benford's Law with formulas and examples, especially of the part First Digit Test.  
+
+##Current Ratio
+
+The current ratio is a term often used in the area of financial analysis. It measures one company's ability to pay short-term liability and long-term obligations. To calculate the ratio, analysts apply the following formula:
+ 
+**Current Ratio = Current Assets / Current Liabilities**
+ 
+
+The current assets include the assets that can be transformed into cash in less than a year, such as cash and inventory. The current liabilities are how much the company needs to pay to other subjects in the future, such as taxes payable and wages.
+
+It is hard to say how good or bad a current ratio is, as the standard varies a lot across industries. To avoid this, we only select out the data of companies within the same industry (Polish companies in the manufacturing sector, which will be discussed with details later in Chapter 2.) But even in the same industry, getting a current ratio above the industry average line is not the same as the signal of well management, because it is possible that the company resources are not efficiently used. Similarly, getting a current ratio below one is typically an alarm that now the company is not able to pay all its obligations if they are all due at one, but the company may be struggling in one financial reporting period and then becomes healthy in the future. In a short summary, the current ratio itself is limited in comparison between different companies without other liquidity ratios' help, and we should always look at the trending information rather than focusing on analyzing data from a single financial period. 
+
+##Benford's Law
+
+Benford's Law is an observation about the frequency distribution of leading digits in any large, randomly produced data sets of numbers. According to the definition, a set of numbers is said to satisfy Benford's law if the leading digit d (d $\in$ {1, ..., 9}) occurs with probability
+
+$P(d) = log_{10}(d+1) - log_{10}(d)=log_{10}\frac{d+1}{d}=log_{10}1+\frac{1}{d}$
+
+Visually, the theoretical distribution of leading digits is as the following(*1):
+
+![The distribution of first digits, according to Benford's law. Each bar represents a digit, and the height of the bar is the percentage of numbers that start with that digit.](Sample Benford)
+
+In reality, the Benford's Law is widely applied to many areas such as detecting fraud. After testing whether one data set is consistent with the law, analysts narrow down their search on numbers with suspect leading digits that may be manipulated manually. In this project, we are focusing on the First Digit Benford Test, and we expect that the current ratio reported by those companies going bankrupt in five years is manipulated and thus the distribution of first leading digits deviates from the law.
+
+#Source Data
+
+According to UCI Machine Learning Repository, the data is first extracted and used by Zieba, M., Tomczak, S. K., and Tomczak, J. M. (2016)(*). This chapter describes the basic information about the data set that is related to the project.
+
+The dataset contains five subsets, each has 64 indicators predicting corporate bankruptcy from the first year of forecasting period to the fifth year of it. The companies classified as "0" in the dataset remained healthy financial status after the forecasting period, while those classified as "1" did not survive successfully. The explanation of 64 indicators is appended in the Appendix chapter. In the project, I extract out the column of X4/Attr 4 as the subject of the study. 
+
+Two things about the quality of the data set need to be mentioned. First, the data is heavily imbalanced. There are much more healthy companies existing than the problematic ones, as you can see in the above table. Second, the data is not comprehensive about all the companies operating in the forecasting period, because some information is not public or missing from the original database.
+
+![a summary of source data](table)
+
+#Method
+
+##Choice of the indicator
+
+The reason why I choose to test the distribution of the leading digits by current ratio rather than picking other 63 indicators is that the current ratio aims to reflect a company's ability to pay all its liabilities in a time period as short as less than one year. Therefore, things become interesting when we can compare the reports from those companies which would claim bankruptcy in only one year with the reports they produced in the previous years.
+
+In the fifth data set, we know that those companies would no longer exist in the market one year later and certainly, the numbers were revised upward. But do they display a similar pattern of manipulation to the pattern in the first data set where companies were in the beginning year of the forecasting period? Second, since we also have data on healthy companies, how is the distribution of the healthy different from that of the bankrupt? 
+
+##First Digit Analysis
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+#load data sets
+oneyear <- read.arff("1year.arff") %>% select(Attr4,class)
+twoyear <- read.arff("2year.arff") %>% select(Attr4,class)
+threeyear <- read.arff("3year.arff") %>% select(Attr4,class)
+fouryear <- read.arff("4year.arff") %>% select(Attr4,class)
+fiveyear <- read.arff("5year.arff") %>% select(Attr4,class)
+#rename colnumns
+colnames(oneyear) <- c("CA_SL","class")
+colnames(twoyear) <- c("CA_SL","class")
+colnames(threeyear) <- c("CA_SL","class")
+colnames(fouryear) <- c("CA_SL","class")
+colnames(fiveyear) <- c("CA_SL","class")
+```
+
+When we browse through the data, we find out some outliers below 0. Usually the current ratio will not be less than zero, so we will remove the unusual points before conducting the First Digit Test.
+
+Below shows all what we exclude from the data sets.
+
+```{r echo=FALSE}
+fouryear %>% filter(CA_SL<0)
+fiveyear %>% filter(CA_SL<0)
+fouryear <- fouryear %>% filter(CA_SL>0)
+fiveyear <- fiveyear %>% filter(CA_SL>0)
+```
+
+There are only two data points existing as outliers, so we assume that the effect of removing negative values is small enough to neglect it.
+
+The first digit test compares the actual first digit frequency distribution of the data set with the theoretical Benford's distribution.
+
+Then we can perform the test on data.
+
+The first step is to count the frequencies of the first leading digits from 1 to 9 and calculate the proportion of each digit in the data from the frequencies. Then we compare the actual first digit frequency distribution with the theoretical Benford's one by chi square test and visualize it.
+
+For instance, belows are the results of the first digit test on bad companies in the last year of the forcasting period.
+
+
+```{r echo=FALSE}
+#This chunk defines the functions 
+
+# The Standard Distribution
+Benford <- c(0.3010,0.1761,0.1249,0.0969,0.079,0.0670,0.0580,0.0512,0.0458)
+# convert numeric values to percentages
+percent <- function(x, digits = 2, format = "f") {
+  paste0(formatC(100*x, format = format, digits = digits), "%")
+}
+# produce proportion tables & plots for each data set
+Analysis_b <- function(data){ #for problematic company
+   b1 <- data%>%filter(class=="1")
+   result <-freq(b1)
+   return(result)
+}
+
+Analysis_h <- function(data){ #for healthy company
+   b1 <- data%>%filter(class=="0")
+   result <-freq(b1)
+   return(result)
+}
+# frequency table
+freq <- function(data){
+  data$Digit <- signifd(data$CA_SL)
+  freqtable <- data%>%group_by(Digit)%>%summarise(freq=n())
+  freqtable <- data.frame(freqtable[c(1:9),])
+  freqtable$proportion <- freqtable$freq/sum(freqtable$freq)
+  freqtable$Benford <- Benford
+  return(freqtable)
+}
+#print good-looking numbers in percentages
+printfunction <- function(data){
+  data$proportion <- percent(data$proportion)
+  data$Benford <- percent(data$Benford)
+  return(data)
+}
+
+ID <- 1:9
+
+#ggplot function
+plotf <- function(data){
+  data1 <- data %>% gather(Benford,proportion,key="type",value="numbers")
+  plotbase <- ggplot(data1,aes(x=Digit,y=numbers,group=type,color=type))+geom_line(size=1.5)+geom_point(size=2)+scale_x_continuous("Digits", labels = as.character(ID), breaks = ID)+labs(y="Proportion",title="First Digit Test Proportions")+ theme(panel.background = element_blank(),axis.line = element_line(colour = "black"))+geom_abline(slope=0)
+  return(plotbase)
+}
+
+#sample command
+kable(printfunction(Analysis_b(fiveyear)),caption = "The actual first digit frequency distribution of struggling companies(5th year) ")%>%kable_styling()
+plotf(Analysis_b(fiveyear))
+
+
+```
+
+The chi square test confirms that its distribution deviates from the Benford's law.
+
+Similarly, we can perform the test on other sub data sets.
+
+```{r echo=FALSE}
+#ggplot function
+#revised version
+plotf1 <- function(data){
+  data1 <- data %>% gather(Benford,proportion,key="type",value="numbers")
+  plotbase <- ggplot(data1,aes(x=Digit,y=numbers,group=type,color=type))+geom_line(size=1.5)+geom_point(size=2)+scale_x_continuous("Digits", labels = as.character(ID), breaks = ID)+labs(y="Proportion")+ theme(panel.background = element_blank(),axis.line = element_line(colour = "black"),legend.position="none")
+  return(plotbase)
+}
+p1 <- plotf1(Analysis_b(oneyear))
+p2 <- plotf1(Analysis_h(oneyear))
+p3 <- plotf1(Analysis_b(twoyear))
+p4 <- plotf1(Analysis_h(twoyear))
+p5 <- plotf1(Analysis_b(threeyear))
+p6 <- plotf1(Analysis_h(threeyear))
+p7 <- plotf1(Analysis_b(fouryear))
+p8 <- plotf1(Analysis_h(fouryear))
+p9 <- plotf1(Analysis_b(fiveyear))
+p10 <-plotf1(Analysis_h(fiveyear))
+
+```
+
+```{r echo=FALSE, fig.height=15, fig.width=12, paged.print=FALSE}
+library(gridExtra)
+library(grid)
+library(plotly)
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,widths=c(0.5,0.5),heights=c(0.5,0.5,0.5,0.5,0.5),ncol=2,nrow=5,top=textGrob("Visualization of first digit test(1st-5th by row)", gp=gpar(fontsize=25,font=8)), left="Bankrupt", right="Healthy",bottom="Red: Benford Distribution/ Blue: the actual distribution")
+
+```
+
+
+
+
+#Results and Discussions 
+
+The chi square test failed to prove that any data sets here are generally conformed to the Benford's law. It is acceptable, since numbers representing the current ratio were not never randomly generated. For instance, by the following plot we can clearly see that the first year's current ratios from all companies gathered around 1 and the distribution is heavily right skewed. As we discussed before, neither a single chi square test nor a first digit test on one specific data set provides any insights.
+
+```{r echo=FALSE,fig.height=5,fig.width=10}
+oneyearsubset <- oneyear %>% filter(CA_SL<25)
+ggplot(oneyearsubset,aes(CA_SL,aes="violet"))+geom_histogram(bins=100,size=0.05,color="gray")+ theme(panel.background = element_blank(),plot.background = element_rect(size=0.2,linetype="solid",color="black"))+ggtitle("The distribution of the current ratio(1st)")+labs(x="the current ratio")
+
+```
+
+However, if one carefully examines the integrated results on page 7, it is obvious that significant anomalies occur more with the digits from problematic companies than from the non-problematic. Since companies in healthy financial status do not have a strong motivation to manipulate the ratio, the shape of the real distribution is similar to that of theoretical Benford's law and does not vary much by year. The digits 2, 8 and 9 conform to the Benford's law. The digits 3-7 exhibit less frequency than the expected, and there may be some reasons behind it which I welcome any reader to explore in the future.
+
+The bankrupt companies are interesting for that the tail of the real frequency distribution becomes more and more abnormal as time went closer to the point where it went bankrupt. Companies in a dangerous financial status usually have a current ratio below one, which means that the leading digits extracted from the data would be possibly 7 to 9. If managers tried hard to adjust the ratio up to 1, we expect to see a higher and higher real frequency in the tail by year. And our observation satisfies the hypothesis.  
+
+
+#Conclusion
+
+To summarize it, bankrupt companies display a predictable pattern in the manipulation of their current ratio before the year they went bankrupt. Compared to the frequency of leading digits from companies in good financial status, that of the bankrupt has a heavy tail which can be used as a benchmark in predicting bankruptcy.
+
+#Reference
+
+*1.Benford's Law. (n.d.). In Wikipedia. Retrieved December 10, 2018, from https://en.wikipedia.org/wiki/Benford%27s_law
+
+*2.UCI Machine Learning Repository, Polish companies bankruptcy data Data Set.https://archive.ics.uci.edu/ml/datasets/Polish+companies+bankruptcy+data
+
+*3.Zieba, M., Tomczak, S. K., & Tomczak, J. M. (2016). Ensemble Boosted Trees with Synthetic Features Generation in Application to Bankruptcy Prediction. Expert Systems with Applications.
+
+#Appendix
+## Original Attribute Information:
+
+```{r echo=FALSE}
+attri <- read_csv("appendix.csv")
+kable(attri)
+```
+
+
+
+
+
+
