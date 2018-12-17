@@ -13,6 +13,7 @@ library(knitr)
 library(benford.analysis)
 library(BenfordTests)
 library(DT)
+library(plotly)
 options("scipen"=100, "digits"=4)
 
 #########
@@ -52,7 +53,31 @@ ui <- dashboardPage(
                   status = "primary",
                   collapsible = T,
                   print("The current ratio is one of the indicators that analysts use to predict corporate bankruptcy in a financial forecasting period. In this project, Benford's law is applied to explore whether the distribution of the first leading digits has a pattern that helps analysts be more alert to unusual reports.")
-                ))),
+                ),
+                box(
+                  title = "What is the Current Ratio?",
+                  width = 12,
+                  solidHeader = T,
+                  status = "warning",
+                  collapsible = T,
+                  print("The current ratio is a term often used in the area of financial analysis. It measures one company's ability to pay short-term liability and long-term obligations. To calculate the ratio, analysts apply the following formula:"),
+                  h4("Current Ratio = Current Assets / Current Liabilities"),
+                  print("The current assets include the assets that can be transformed into cash in less than a year, such as cash and inventory. The current liabilities are how much the company needs to pay to other subjects in the future, such as taxes payable and wages.It is hard to say how good or bad a current ratio is, as the standard varies a lot across industries. To avoid this, we only select out the data of companies within the same industry (Polish companies in the manufacturing sector, which will be discussed with details later in Chapter Source Data.) But even in the same industry, getting a current ratio above the industry average line is not the same as the signal of well management, because it is possible that the company resources are not efficiently used. Similarly, getting a current ratio below one is typically an alarm that now the company is not able to pay all its obligations if they are all due at one, but the company may be struggling in one financial reporting period and then becomes healthy in the future. In a short summary, the current ratio itself is limited in comparison between different companies without other liquidity ratios' help, and we should always look at the trending information rather than focusing on analyzing data from a single financial period. ")
+                
+                ),
+                box(
+                  title = "What is Benford's Law?",
+                  width = 12,
+                  solidHeader = T,
+                  status = "success",
+                  collapsible = T,
+                  print("Benford's Law is an observation about the frequency distribution of leading digits in any large, randomly produced data sets of numbers."),
+                  plotlyOutput("benford"),
+                  print("In reality, the Benford's Law is widely applied to many areas such as detecting fraud. After testing whether one data set is consistent with the law, analysts narrow down their search on numbers with suspect leading digits that may be manipulated manually. In this project, we are focusing on the First Digit Benford Test, and we expect that the current ratio reported by those companies going bankrupt in five years is manipulated and thus the distribution of first leading digits deviates from the law.")
+                )
+                
+                )#fluid
+              ),
       tabItem(
         tabName = "BA",
         fluidRow(
@@ -91,7 +116,69 @@ ui <- dashboardPage(
             solidHeader = T,
             status = "success",
             collapsible = T,
-            plotlyOutput("ploth"))
+            plotlyOutput("ploth")),
+          box(
+            title = "Wanna view trending information?",
+            width = 12,
+            solidHeader = T,
+            status = "info",
+            collapsible = T,
+            collapsed = F,
+            selectInput(
+              "type",
+              "Bankrupt?Healthy?",
+              choice = c("Bankrupt","Healthy"),
+              selected = "Bankrupt"
+            )
+          ),
+          box(
+            title = "Trending info plots",
+            h3("1st Year"),
+            width = 4,
+           
+            solidHeader = T,
+            status = "warning",
+            collapsible = F,
+            plotlyOutput("plotall1")
+          ),
+          box(
+            title = "Trending info plots",
+            h3("2nd Year"),
+            width = 4,
+            
+            solidHeader = T,
+            status = "warning",
+            collapsible = F,
+            plotlyOutput("plotall2")
+          ),
+          box(
+            title = "Trending info plots",
+            h3("3rd Year"),
+            width = 4,
+            
+            solidHeader = T,
+            status = "warning",
+            collapsible = F,
+            plotlyOutput("plotall3")
+          ),
+          box(
+            title = "Trending info plots",
+            h3("4th Year"),
+            width = 4,
+            solidHeader = T,
+            status = "warning",
+            collapsible = F,
+            plotlyOutput("plotall4")
+           ),
+          box(
+            title = "Trending info plots",
+            h3("5th Year"),
+            width = 4,
+            solidHeader = T,
+            status = "warning",
+            collapsible = F,
+            plotlyOutput("plotall5")
+          )
        
           )#Fluidrow
         ),#tabitem
@@ -195,6 +282,17 @@ server <- function(input, output) {
   #sample command
   #plotf(Analysis_b(fiveyear))
   
+  ##Hello tab
+  output$benford <- renderPlotly(
+    {  
+      numbers <- c(1,2,3,4,5,6,7,8,9)
+      Benfordsample <- cbind.data.frame(numbers,Benford)
+      ggplot(Benfordsample,aes(y=Benford,x=numbers))+geom_point(color="red")+geom_line(color="red")+ 
+        scale_x_continuous("Digits", labels = as.character(ID), breaks = ID)+theme(panel.background = element_blank(),plot.background = element_rect(size=0.2,linetype="solid",color="black"))+ggtitle("Benford's Law Visualization")+labs(y="Frequency Distribution")
+      
+    }
+  )
+  
   ## Benford tab
   output$plotb <- renderPlotly({
     if (input$year == "First"){
@@ -224,6 +322,47 @@ server <- function(input, output) {
     }
   } )
   
+  plotf1 <- function(data){
+    data1 <- data %>% gather(Benford,proportion,key="type",value="numbers")
+    plotbase <- ggplot(data1,aes(x=Digit,y=numbers,group=type,color=type))+geom_line(size=1.5)+geom_point(size=2)+scale_x_continuous("Digits", labels = as.character(ID), breaks = ID)+labs(y="Proportion")+ theme(panel.background = element_blank(),axis.line = element_line(colour = "black"),legend.position="none")
+    return(plotbase)
+  }
+  p1 <- plotf1(Analysis_b(oneyear))
+  p2 <- plotf1(Analysis_h(oneyear))
+  p3 <- plotf1(Analysis_b(twoyear))
+  p4 <- plotf1(Analysis_h(twoyear))
+  p5 <- plotf1(Analysis_b(threeyear))
+  p6 <- plotf1(Analysis_h(threeyear))
+  p7 <- plotf1(Analysis_b(fouryear))
+  p8 <- plotf1(Analysis_h(fouryear))
+  p9 <- plotf1(Analysis_b(fiveyear))
+  p10 <-plotf1(Analysis_h(fiveyear))
+  
+  output$plotall1 <- renderPlotly({
+    if (input$type =="Bankrupt"){
+      p1
+    }else{p2}
+  })
+  output$plotall2 <- renderPlotly({
+    if (input$type =="Bankrupt"){
+      p3
+    }else{p4}
+  })
+  output$plotall3 <- renderPlotly({
+    if (input$type =="Bankrupt"){
+      p5
+    }else{p6}
+  })
+  output$plotall4 <- renderPlotly({
+    if (input$type =="Bankrupt"){
+      p7
+    }else{p8}
+  })
+  output$plotall5 <- renderPlotly({
+    if (input$type =="Bankrupt"){
+      p9
+    }else{p10}
+  })
 
   ##Data set
  
